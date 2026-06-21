@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="uz" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uzum Market Pro - Internet do'kon</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        uzum: { DEFAULT: '#7000ff', dark: '#5b00cc', light: '#f2e5ff' },
+                        uzumYellow: '#ffff00',
+                        darkBg: '#121212',
+                        darkCard: '#1e1e1e'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            scroll-behavior: smooth;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Skeleton Animation */
+        @keyframes pulse-bg {
+            0% { background-color: #e5e7eb; }
+            50% { background-color: #d1d5db; }
+            100% { background-color: #e5e7eb; }
+        }
+        .dark .skeleton { animation: pulse-bg-dark 1.5s infinite; }
+        @keyframes pulse-bg-dark {
+            0% { background-color: #374151; }
+            50% { background-color: #4b5563; }
+            100% { background-color: #374151; }
+        }
+        .skeleton { animation: pulse-bg 1.5s infinite; }
+
+        /* Product Card Hover */
+        .product-card { transition: all 0.2s ease-in-out; }
+        .product-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.12); transform: translateY(-4px); }
+        .dark .product-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+
+        /* Search Dropdown */
+        .search-active .search-dropdown { display: block; }
+
+        /* Image Zoom */
+        .zoom-img { transition: transform 0.3s ease; }
+        .zoom-container:hover .zoom-img { transform: scale(1.5); }
+
+        /* Toast */
+        @keyframes slideUp { from { bottom: -50px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+        .toast-show { animation: slideUp 0.3s ease-out forwards; }
+
+        /* Swiper Customization */
+        .swiper-button-next, .swiper-button-prev {
+            background-color: rgba(255, 255, 255, 0.8);
+            width: 40px !important; height: 40px !important;
+            border-radius: 50%; color: #7000ff !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .swiper-button-next:after, .swiper-button-prev:after { font-size: 18px !important; font-weight: bold; }
+        .dark .swiper-button-next, .dark .swiper-button-prev { background-color: rgba(30,30,30,0.8); }
+        
+        /* Loading Overlay */
+        #page-loader { transition: opacity 0.3s ease; }
+    </style>
+</head>
+<body class="bg-[#f4f5f5] dark:bg-darkBg text-gray-800 dark:text-gray-200 pb-16 md:pb-0 transition-colors duration-300">
+
+    <!-- Top Bar -->
+    <div class="bg-[#f4f5f5] dark:bg-darkBg hidden md:block border-b border-gray-200 dark:border-gray-800 transition-colors">
+        <div class="max-w-[1240px] mx-auto px-4 py-1.5 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 font-medium">
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1 hover:text-black dark:hover:text-white cursor-pointer"><i class="ri-map-pin-line"></i> Shahar: Toshkent</span>
+                <span class="hover:text-black dark:hover:text-white cursor-pointer">Topshirish punktlari</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="hover:text-black dark:hover:text-white cursor-pointer text-uzum dark:text-uzum-light">Sotuvchi bo'ling</span>
+                <span class="hover:text-black dark:hover:text-white cursor-pointer">Savol-javob</span>
+                <span class="hover:text-black dark:hover:text-white cursor-pointer">Buyurtmalarim</span>
+                <!-- Dark Mode Toggle -->
+                <button onclick="toggleDarkMode()" class="hover:text-black dark:hover:text-white cursor-pointer flex items-center gap-1">
+                    <i id="theme-icon" class="ri-moon-line"></i> <span id="theme-text">Tungi rejim</span>
+                </button>
+                <span class="flex items-center gap-1 hover:text-black dark:hover:text-white cursor-pointer">O'zBEK <i class="ri-arrow-down-s-line"></i></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="bg-white dark:bg-darkCard sticky top-0 z-40 w-full shadow-sm transition-colors duration-300">
+        <div class="max-w-[1240px] mx-auto px-4 py-4 flex items-center justify-between gap-4 relative">
+            <!-- Logo -->
+            <a href="#" onclick="showHome()" class="flex items-center gap-1">
+                <div class="bg-uzum text-white w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center font-bold text-xl md:text-2xl">U</div>
+                <span class="text-uzum font-extrabold text-2xl tracking-tight hidden sm:block">uzum market</span>
+            </a>
+
+            <!-- Catalog Button -->
+            <button class="hidden md:flex items-center gap-2 bg-uzum text-white px-4 py-2.5 rounded-md hover:bg-uzum-dark transition font-medium">
+                <i class="ri-menu-2-line text-lg"></i> Katalog
+            </button>
+
+            <!-- Search Bar -->
+            <div class="flex-1 max-w-2xl relative" id="search-container">
+                <div class="relative flex items-center w-full h-10 md:h-11 rounded-md bg-gray-100 dark:bg-gray-800 border border-transparent focus-within:border-uzum focus-within:bg-white dark:focus-within:bg-gray-900 transition-all">
+                    <input type="text" id="search-input" placeholder="Mahsulotlar va turkumlar izlash" autocomplete="off"
+                        class="w-full h-full bg-transparent outline-none pl-4 pr-12 text-sm text-gray-900 dark:text-white"
+                        oninput="handleSearch()" onfocus="document.getElementById('search-container').classList.add('search-active')" onblur="setTimeout(()=>document.getElementById('search-container').classList.remove('search-active'), 200)">
+                    <button class="absolute right-0 h-full px-4 flex items-center justify-center text-gray-400 hover:text-uzum">
+                        <i class="ri-search-line text-xl"></i>
+                    </button>
+                </div>
+                <!-- Search Suggestions Dropdown -->
+                <div class="search-dropdown hidden absolute top-full left-0 w-full bg-white dark:bg-darkCard mt-1 rounded-md shadow-lg border border-gray-100 dark:border-gray-800 z-50 overflow-hidden">
+                    <div id="search-suggestions" class="max-h-64 overflow-y-auto">
+                        <!-- Suggestions via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Icons -->
+            <div class="hidden md:flex items-center gap-6 text-gray-700 dark:text-gray-300">
+                <button onclick="showProfile()" class="flex flex-col items-center hover:text-uzum dark:hover:text-uzum-light transition group">
+                    <i class="ri-user-line text-2xl group-hover:bg-gray-100 dark:group-hover:bg-gray-800 p-1.5 rounded-md"></i>
+                    <span class="text-xs mt-1">Kirish</span>
+                </button>
+                <button onclick="showFavorites()" class="flex flex-col items-center hover:text-uzum dark:hover:text-uzum-light transition group relative">
+                    <i class="ri-heart-line text-2xl group-hover:bg-gray-100 dark:group-hover:bg-gray-800 p-1.5 rounded-md"></i>
+                    <span class="text-xs mt-1">Saralangan</span>
+                    <span id="fav-count-desktop" class="absolute top-0 right-1 bg-uzum text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                </button>
+                <button onclick="openCart()" class="flex flex-col items-center hover:text-uzum dark:hover:text-uzum-light transition group relative">
+                    <i class="ri-shopping-bag-line text-2xl group-hover:bg-gray-100 dark:group-hover:bg-gray-800 p-1.5 rounded-md"></i>
+                    <span class="text-xs mt-1">Savat</span>
+                    <span id="cart-count-desktop" class="absolute top-0 right-0 bg-uzum text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Categories Nav -->
+        <div class="max-w-[1240px] mx-auto px-4 py-2 hidden md:flex items-center gap-5 overflow-x-auto hide-scrollbar text-sm font-medium text-gray-600 dark:text-gray-400">
+            <span class="flex items-center gap-1 text-black dark:text-white cursor-pointer"><i class="ri-fire-fill text-red-500"></i> Katta sotuvlar</span>
+            <span class="cursor-pointer hover:text-black dark:hover:text-white">Elektronika</span>
+            <span class="cursor-pointer hover:text-black dark:hover:text-white">Maishiy texnika</span>
+            <span class="cursor-pointer hover:text-black dark:hover:text-white">Kiyim</span>
+            <span class="cursor-pointer hover:text-black dark:hover:text-white">Poyabzal</span>
+            <span class="cursor-pointer hover:text-black dark:hover:text-white">Aksessuarlar</span>
+            <span class="cursor-pointer hover:text-black dark:hover:text-white">Go'zallik va parvarish</span>
+            <span class="cursor-pointer hover:text-black dark:hover:text-white text-gray-400">Yana <i class="ri-arrow-down-s-line"></i></span>
+        </div>
+    </header>
+
+    <!-- VIEW: HOME -->
+    <main id="view-home" class="max-w-[1240px] mx-auto px-4 mt-4 w-full block">
+        
+        <!-- Hero Banner Swiper -->
+        <div class="swiper hero-swiper w-full h-[200px] md:h-[400px] rounded-2xl overflow-hidden cursor-pointer group mb-8">
+            <div class="swiper-wrapper">
+                <!-- Slide 1: Katta Chegirmalar -->
+                <div class="swiper-slide relative">
+                    <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1920&q=90" alt="Katta Chegirmalar" class="w-full h-full object-cover object-center transform scale-100 group-hover:scale-105 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex flex-col justify-center px-6 md:px-16 text-white">
+                        <span class="bg-red-600 text-white text-[10px] md:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full w-max mb-3 animate-pulse">
+                            🔥 Maxsus taklif
+                        </span>
+                        <h1 class="text-2xl md:text-5xl font-black mb-2 leading-tight drop-shadow-md">
+                            Mavsumiy <br class="md:hidden"><span class="text-uzumYellow">Katta Chegirmalar!</span>
+                        </h1>
+                        <p class="text-xs md:text-lg mb-6 text-gray-200 max-w-md drop-shadow-sm font-medium">
+                            Maishiy texnika, smartfonlar va kundalik tovarlarga <span class="font-extrabold text-white">75% gacha</span> kafolatlangan chegirmalar.
+                        </p>
+                        <button class="bg-uzum text-white hover:bg-uzum-dark font-bold text-xs md:text-sm py-2.5 px-6 rounded-xl w-max transition-all shadow-lg shadow-purple-500/30 flex items-center gap-2">
+                            Xarid qilish <i class="ri-arrow-right-line"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Slide 2: Yangi Kolleksiya -->
+                <div class="swiper-slide relative">
+                    <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1920&q=90" alt="Yangi Kolleksiya" class="w-full h-full object-cover object-center transform scale-100 group-hover:scale-105 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-950/90 via-purple-900/45 to-transparent flex flex-col justify-center px-6 md:px-16 text-white">
+                        <span class="bg-uzum text-white text-[10px] md:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full w-max mb-3">
+                            ✨ Yangi Mavsum
+                        </span>
+                        <h1 class="text-2xl md:text-5xl font-black mb-2 leading-tight drop-shadow-md">
+                            Yangi Kolleksiya <br class="md:hidden"><span class="text-purple-300">Uzum Style</span>
+                        </h1>
+                        <p class="text-xs md:text-lg mb-6 text-gray-200 max-w-md drop-shadow-sm font-medium">
+                            Yozgi eng trend kiyimlar, poyabzallar va eksklyuziv aksessuarlar. <span class="font-bold text-white">Bepul 1 kunda</span> eshigingizgacha yetkaziladi!
+                        </p>
+                        <button class="bg-white text-uzum hover:bg-gray-100 font-bold text-xs md:text-sm py-2.5 px-6 rounded-xl w-max transition-all shadow-lg flex items-center gap-2">
+                            Katalogga o'tish <i class="ri-arrow-right-line"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-prev hidden md:flex"></div>
+            <div class="swiper-button-next hidden md:flex"></div>
+        </div>
+
+        <!-- Categories Circle Swiper -->
+        <h2 class="text-xl font-bold mb-4 dark:text-white">Ommabop ruknlar</h2>
+        <div class="swiper category-swiper mb-10 pb-4">
+            <div class="swiper-wrapper text-center">
+                <!-- Categories added by JS -->
+            </div>
+        </div>
+
+        <!-- Flash Sale Countdown -->
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/50 rounded-xl p-4 mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <i class="ri-timer-flash-fill text-3xl text-red-500"></i>
+                <div>
+                    <h3 class="font-bold text-red-600 dark:text-red-400 text-lg">Hafta o'yinlari - Chegirmalar yonmoqda!</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Faqat 2 kun ichida eng yaxshi narxlar</p>
+                </div>
+            </div>
+            <div class="flex gap-2 text-center" id="countdown">
+                <div class="bg-white dark:bg-darkCard px-3 py-1.5 rounded-lg shadow-sm min-w-[50px]"><span class="font-bold text-xl block" id="cd-h">24</span><span class="text-[10px] text-gray-500">soat</span></div>
+                <div class="text-2xl font-bold text-red-500 pt-1">:</div>
+                <div class="bg-white dark:bg-darkCard px-3 py-1.5 rounded-lg shadow-sm min-w-[50px]"><span class="font-bold text-xl block" id="cd-m">59</span><span class="text-[10px] text-gray-500">daq</span></div>
+                <div class="text-2xl font-bold text-red-500 pt-1">:</div>
+                <div class="bg-white dark:bg-darkCard px-3 py-1.5 rounded-lg shadow-sm min-w-[50px]"><span class="font-bold text-xl block" id="cd-s">59</span><span class="text-[10px] text-gray-500">son</span></div>
+            </div>
+        </div>
+
+        <!-- Product Tools (Sort/Filter) -->
+        <div class="flex flex-wrap items-center justify-between mb-6 gap-4 border-b dark:border-gray-800 pb-2">
+            <h2 id="section-title" class="text-2xl font-bold text-gray-900 dark:text-white">Arzon narxlar</h2>
+            <div class="flex items-center gap-4">
+                <select id="sort-select" onchange="sortProducts()" class="bg-white dark:bg-darkCard border border-gray-200 dark:border-gray-700 text-sm rounded-md px-3 py-1.5 outline-none cursor-pointer">
+                    <option value="default">Odatiy</option>
+                    <option value="cheap">Arzonroq</option>
+                    <option value="expensive">Qimmatroq</option>
+                    <option value="rating">Reyting bo'yicha</option>
+                </select>
+                <button onclick="showHome()" id="reset-filter-btn" class="hidden text-uzum text-sm font-medium hover:underline">Barchasini ko'rish</button>
+            </div>
+        </div>
+
+        <!-- Main Products Grid -->
+        <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 mb-10">
+            <!-- Products injected by JS -->
+        </div>
+        
+        <!-- Infinite Scroll Trigger -->
+        <div id="load-more-trigger" class="py-10 text-center hidden">
+            <i class="ri-loader-4-line text-3xl animate-spin text-uzum"></i>
+        </div>
+
+    </main>
+
+    <!-- VIEW: PRODUCT DETAILS -->
+    <main id="view-product" class="max-w-[1240px] mx-auto px-4 mt-4 w-full hidden">
+        <!-- Breadcrumb -->
+        <div class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
+            <span class="cursor-pointer hover:text-black dark:hover:text-white" onclick="showHome()">Bosh sahifa</span>
+            <i class="ri-arrow-right-s-line"></i>
+            <span id="pd-category" class="cursor-pointer hover:text-black dark:hover:text-white">Kategoriya</span>
+            <i class="ri-arrow-right-s-line"></i>
+            <span id="pd-title-short" class="text-gray-800 dark:text-gray-200 line-clamp-1">Mahsulot</span>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-8 bg-white dark:bg-darkCard p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-10">
+            <!-- Left: Image Gallery -->
+            <div class="w-full md:w-5/12 flex flex-col gap-4">
+                <div class="w-full aspect-[4/5] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden zoom-container relative">
+                    <img id="pd-main-img" src="" alt="Product" class="w-full h-full object-cover zoom-img cursor-crosshair">
+                </div>
+                <!-- Mini images swiper -->
+                <div class="flex gap-2 overflow-x-auto hide-scrollbar" id="pd-thumbs">
+                    <!-- Thumbs injected via JS -->
+                </div>
+            </div>
+
+            <!-- Right: Product Info -->
+            <div class="w-full md:w-7/12 flex flex-col">
+                <div class="flex items-center gap-2 mb-2 text-sm text-gray-500 dark:text-gray-400">
+                    <i class="ri-star-fill text-yellow-400"></i>
+                    <span id="pd-rating" class="font-bold text-gray-900 dark:text-white"></span>
+                    <span id="pd-reviews" class="underline cursor-pointer"></span>
+                    <span class="mx-2">•</span>
+                    <span>Sotuvchi: <span class="text-black dark:text-white font-medium">Uzum Brand</span></span>
+                </div>
+                <h1 id="pd-title" class="text-2xl md:text-3xl font-bold mb-4 dark:text-white"></h1>
+                
+                <div class="border-t border-b border-gray-100 dark:border-gray-800 py-4 my-4 flex justify-between items-center">
+                    <div>
+                        <div id="pd-old-price" class="text-sm text-gray-400 line-through mb-1"></div>
+                        <div class="text-3xl font-bold text-black dark:text-white" id="pd-price"></div>
+                    </div>
+                    <div class="bg-uzumYellow px-3 py-1.5 rounded-lg text-sm font-bold text-black border border-yellow-300 shadow-sm flex flex-col items-center">
+                        <span class="text-[10px] font-normal leading-tight">Bo'lib to'lash</span>
+                        <span id="pd-installment"></span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 mb-6 mt-auto">
+                    <button id="pd-add-btn" class="flex-1 bg-uzum hover:bg-uzum-dark text-white font-bold py-3.5 rounded-xl transition text-lg flex items-center justify-center gap-2">
+                        Savatchaga qo'shish
+                    </button>
+                    <button id="pd-fav-btn" class="w-14 h-14 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:text-uzum hover:border-uzum transition bg-white dark:bg-darkBg text-xl">
+                        <i class="ri-heart-line"></i>
+                    </button>
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl flex items-start gap-3">
+                    <i class="ri-truck-line text-2xl text-green-500"></i>
+                    <div>
+                        <h4 class="font-bold text-sm dark:text-white">Yetkazib berish 1 kun, bepul</h4>
+                        <p class="text-xs text-gray-500 mt-1">Uzum topshirish punktiga yoki kurer orqali eshikkacha</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description & Characteristics -->
+        <div class="bg-white dark:bg-darkCard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-10">
+            <h2 class="text-xl font-bold mb-4 dark:text-white">Mahsulot tavsifi</h2>
+            <p id="pd-desc" class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-6"></p>
+            
+            <h3 class="font-bold mb-3 dark:text-white">Xususiyatlari:</h3>
+            <ul class="text-sm text-gray-600 dark:text-gray-300 list-disc pl-5 space-y-1">
+                <li>Brend: <span class="font-medium text-black dark:text-white" id="pd-brand"></span></li>
+                <li>Holati: Yangi</li>
+                <li>Kafolat: 1 yil</li>
+            </ul>
+        </div>
+        
+        <!-- Similar Products Swiper -->
+        <h2 class="text-xl font-bold mb-4 dark:text-white">O'xshash mahsulotlar</h2>
+        <div class="swiper similar-swiper mb-10 pb-4">
+            <div class="swiper-wrapper" id="similar-products">
+                <!-- Injected via JS -->
+            </div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-darkCard border-t border-gray-200 dark:border-gray-800 flex justify-between items-center px-6 py-2 z-40 transition-colors">
+        <button onclick="showHome()" class="flex flex-col items-center text-uzum w-1/5">
+            <i class="ri-home-5-fill text-2xl"></i><span class="text-[10px] mt-1 font-medium">Bosh sahifa</span>
+        </button>
+        <button class="flex flex-col items-center text-gray-400 hover:text-uzum dark:hover:text-uzum-light w-1/5 transition">
+            <i class="ri-search-2-line text-2xl"></i><span class="text-[10px] mt-1 font-medium">Katalog</span>
+        </button>
+        <button onclick="openCart()" class="flex flex-col items-center text-gray-400 hover:text-uzum dark:hover:text-uzum-light w-1/5 transition relative">
+            <i class="ri-shopping-bag-line text-2xl"></i><span class="text-[10px] mt-1 font-medium">Savat</span>
+            <span id="cart-count-mobile" class="absolute top-0 right-1 bg-uzum text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+        </button>
+        <button onclick="showFavorites()" class="flex flex-col items-center text-gray-400 hover:text-uzum dark:hover:text-uzum-light w-1/5 transition relative">
+            <i class="ri-heart-line text-2xl"></i><span class="text-[10px] mt-1 font-medium">Istaklar</span>
+            <span id="fav-count-mobile" class="absolute top-0 right-1 bg-uzum text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+        </button>
+        <button onclick="showProfile()" class="flex flex-col items-center text-gray-400 hover:text-uzum dark:hover:text-uzum-light w-1/5 transition">
+            <i class="ri-user-line text-2xl"></i><span class="text-[10px] mt-1 font-medium">Profil</span>
+        </button>
+    </div>
+
+    <!-- Cart Overlay & Sidebar -->
+    <div id="cart-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300" onclick="closeCart()"></div>
+    <div id="cart-modal" class="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white dark:bg-darkCard z-50 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
+        <div class="px-4 py-4 border-b dark:border-gray-800 flex justify-between items-center bg-white dark:bg-darkCard">
+            <h2 class="text-xl font-bold dark:text-white">Savatcha</h2>
+            <button onclick="closeCart()" class="text-gray-500 hover:text-black dark:hover:text-white"><i class="ri-close-line text-2xl"></i></button>
+        </div>
+        
+        <div id="cart-items" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-gray-50 dark:bg-darkBg">
+            <!-- Empty state -->
+            <div id="cart-empty" class="h-full flex flex-col items-center justify-center text-center text-gray-500 hidden">
+                <img src="https://images.unsplash.com/photo-1555529733-0e67056058e1?auto=format&fit=crop&w=200&q=80" alt="Empty" class="w-32 h-32 object-cover rounded-full mb-4 grayscale opacity-50">
+                <p class="text-lg font-medium text-gray-800 dark:text-gray-200">Savatchangiz bo'sh</p>
+                <button onclick="closeCart()" class="mt-4 bg-uzum text-white px-6 py-2 rounded-md font-medium">Asosiy sahifaga</button>
+            </div>
+            <!-- Items injected via JS -->
+        </div>
+
+        <div id="cart-footer" class="border-t dark:border-gray-800 p-4 bg-white dark:bg-darkCard hidden">
+            <!-- Promo code mock -->
+            <div class="flex gap-2 mb-4">
+                <input type="text" placeholder="Promokod" class="flex-1 border dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-md px-3 py-2 text-sm outline-none focus:border-uzum">
+                <button class="bg-gray-200 dark:bg-gray-700 px-4 rounded-md text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition">Qo'llash</button>
+            </div>
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-gray-600 dark:text-gray-400 font-medium">Jami:</span>
+                <span id="cart-total" class="text-2xl font-bold text-gray-900 dark:text-white">0 so'm</span>
+            </div>
+            <button onclick="checkout()" class="w-full bg-uzum hover:bg-uzum-dark text-white font-bold py-3.5 rounded-xl transition text-lg shadow-lg shadow-purple-500/30">
+                Rasmiylashtirish
+            </button>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" onclick="window.scrollTo(0,0)" class="fixed bottom-20 md:bottom-8 right-4 bg-uzum text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-40 opacity-0 pointer-events-none transition-opacity">
+        <i class="ri-arrow-up-line text-xl"></i>
+    </button>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-[-50px] right-4 md:right-8 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 z-50 opacity-0 transition-all duration-300 pointer-events-none">
+        <i class="ri-check-line text-green-400 text-xl"></i><span id="toast-msg" class="font-medium"></span>
+    </div>
+
+    <!-- Page Loader -->
+    <div id="page-loader" class="fixed inset-0 bg-white dark:bg-darkBg z-[100] flex items-center justify-center">
+        <div class="flex flex-col items-center">
+            <div class="w-16 h-16 border-4 border-uzum border-t-transparent rounded-full animate-spin"></div>
+            <div class="mt-4 text-uzum font-bold text-xl tracking-widest animate-pulse">UZUM</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script>
+        // Comprehensive 50 Product Dataset with real images
+        const baseProducts = [
+            { n: "Apple iPhone 15 Pro Max, 256 GB, Titanium", p: 16500000, op: 17800000, r: 4.9, rv: 342, c: "Elektronika", b: "Apple", i: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=400&q=80" },
+            { n: "Samsung Galaxy S24 Ultra, 12/512GB", p: 15200000, op: 16000000, r: 4.8, rv: 210, c: "Elektronika", b: "Samsung", i: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=400&q=80" },
+            { n: "MacBook Pro 14 M3, 8/512GB, Space Gray", p: 21000000, op: 22500000, r: 5.0, rv: 125, c: "Elektronika", b: "Apple", i: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80" },
+            { n: "Simsiz quloqchin AirPods Pro 2 (Type-C)", p: 3100000, op: 3500000, r: 4.9, rv: 560, c: "Elektronika", b: "Apple", i: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=400&q=80" },
+            { n: "Aqlli soat Apple Watch Series 9, 45mm", p: 5400000, op: 5800000, r: 4.8, rv: 189, c: "Elektronika", b: "Apple", i: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=400&q=80" },
+            { n: "Krossovka Nike Air Force 1 '07 Oq", p: 1400000, op: 1600000, r: 4.8, rv: 890, c: "Kiyim", b: "Nike", i: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80" },
+            { n: "Adidas Ultraboost 22 qora", p: 1800000, op: 2000000, r: 4.7, rv: 420, c: "Kiyim", b: "Adidas", i: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80" },
+            { n: "Chanel Chance Eau Tendre Original Ayollar Atiri, 100ml", p: 2400000, op: 2800000, r: 4.9, rv: 410, c: "Go'zallik", b: "Chanel", i: "https://elcos.uz/static/siteApp/media/a8bc165c-b479-4530-921a-f1deae48ebb6.jpg" },
+            { n: "Kir yuvish mashinasi LG, 7kg Inverter Smart", p: 5200000, op: 5800000, r: 4.8, rv: 145, c: "Uy-ro'zg'or", b: "LG", i: "https://minapi.beemarket.uz/prod-media/productImages/2309e9b4-d505-4450-b38b-1b57f0def512/16828332-f89e-4fa5-a76c-21a3451e8147.webp" },
+            { n: "Dyson Supersonic fen, pushti", p: 6500000, op: 7200000, r: 5.0, rv: 230, c: "Go'zallik", b: "Dyson", i: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=400&q=80" }
+        ];
+
+        
+const products = Array.from({length:120}, (_,i)=>({
+    id:i+1,
+    name:`Premium Mahsulot ${i+1}`,
+    price:Math.floor(50000 + (i*135000)),
+    oldPrice:Math.floor((50000 + (i*135000))*1.15),
+    rating:(4 + ((i%10)/10)).toFixed(1),
+    reviews:50 + i*3,
+    category:["Elektronika","Kiyim","Sport","Go'zallik","Uy uchun","Bolalar"][i%6],
+    brand:["Apple","Samsung","Nike","Adidas","LG","Xiaomi"][i%6],
+    img:`https://picsum.photos/seed/uzum${i+1}/600/600`,
+    desc:"Takrorlanmaydigan demo mahsulot.",
+    images:[
+      `https://picsum.photos/seed/uzum${i+1}/600/600`,
+      `https://picsum.photos/seed/uzum${i+201}/600/600`,
+      `https://picsum.photos/seed/uzum${i+401}/600/600`
+    ]
+}));
+
+
+        const categories = [
+            { icon: '📱', name: 'Elektronika' }, { icon: '👕', name: 'Kiyim' }, 
+            { icon: '👟', name: 'Poyabzal' }, { icon: '💄', name: "Go'zallik" },
+            { icon: '🏠', name: 'Uy uchun' }, { icon: '⚽', name: 'Sport' },
+            { icon: '🧸', name: 'Bolalar' }, { icon: '🚗', name: 'Avto' }
+        ];
+
+        let cart = JSON.parse(localStorage.getItem('uzumCart')) || [];
+        let favorites = JSON.parse(localStorage.getItem('uzumFavs')) || [];
+        let viewState = 'home'; 
+
+        // Utilities
+        const formatPrice = p => p.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        const calcInst = p => formatPrice(Math.round(p / 12));
+        const saveLocal = () => {
+            localStorage.setItem('uzumCart', JSON.stringify(cart));
+            localStorage.setItem('uzumFavs', JSON.stringify(favorites));
+        };
+
+        // Navigation Logic (SPA simulation)
+        function showHome() {
+            document.getElementById('view-home').classList.remove('hidden');
+            document.getElementById('view-product').classList.add('hidden');
+            document.getElementById('section-title').innerText = "Arzon narxlar";
+            document.getElementById('reset-filter-btn').classList.add('hidden');
+            viewState = 'home';
+            renderProducts(products);
+            window.scrollTo(0,0);
+        }
+
+        function showFavorites() {
+            document.getElementById('view-home').classList.remove('hidden');
+            document.getElementById('view-product').classList.add('hidden');
+            document.getElementById('section-title').innerText = "Saralangan tovarlar";
+            document.getElementById('reset-filter-btn').classList.remove('hidden');
+            viewState = 'favorites';
+            renderProducts(products.filter(p => favorites.includes(p.id)));
+        }
+
+        function showProfile() {
+            showToast("Profil tizimi ishlab chiqilmoqda");
+        }
+
+        // Render Product Cards
+        function renderProducts(items, containerId = "products-grid", isSwiper = false) {
+            const grid = document.getElementById(containerId);
+            grid.innerHTML = "";
+
+            if (items.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500 w-full">Hech narsa topilmadi</div>`;
+                return;
+            }
+
+            items.forEach(product => {
+                const isFav = favorites.includes(product.id);
+                const discount = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
+                
+                const cardHtml = `
+                    <div class="relative w-full pt-[120%] overflow-hidden bg-gray-100 dark:bg-gray-800">
+                        ${discount ? `<div class="absolute bottom-2 left-2 bg-uzum text-white text-[10px] font-bold px-1.5 py-0.5 rounded z-10">-${discount}%</div>` : ''}
+                        <img src="${product.img}" alt="${product.name}" loading="lazy" class="absolute inset-0 w-full h-full object-cover transition duration-300">
+                        <button onclick="toggleFav(event, ${product.id})" class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 dark:bg-black/50 backdrop-blur hover:bg-white transition z-10">
+                            <i class="${isFav ? 'ri-heart-fill text-uzum' : 'ri-heart-line text-gray-400 dark:text-white'} text-lg"></i>
+                        </button>
+                    </div>
+                    <div class="p-2 md:p-3 flex flex-col flex-grow bg-white dark:bg-darkCard">
+                        <h3 class="text-xs md:text-sm text-gray-800 dark:text-gray-200 line-clamp-2 leading-tight mb-1 h-[34px] md:h-[40px]">${product.name}</h3>
+                        <div class="flex items-center gap-1 text-[10px] md:text-xs text-gray-500 mb-2">
+                            <i class="ri-star-fill text-yellow-400"></i><span class="font-medium text-black dark:text-white">${product.rating}</span><span>(${product.reviews})</span>
+                        </div>
+                        <div class="mt-auto">
+                            <div class="bg-uzumYellow text-black inline-block px-1.5 py-0.5 rounded text-[10px] md:text-xs font-medium mb-1">
+                                ${calcInst(product.price)} so'm/oy
+                            </div>
+                            <div class="flex justify-between items-end mt-1">
+                                <div>
+                                    ${product.oldPrice ? `<div class="text-[11px] text-gray-400 line-through">${formatPrice(product.oldPrice)}</div>` : `<div class="h-[16px]"></div>`}
+                                    <div class="text-sm md:text-base font-bold text-black dark:text-white">${formatPrice(product.price)} so'm</div>
+                                </div>
+                                <button onclick="addCart(event, ${product.id})" class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-500 hover:border-uzum hover:text-uzum transition">
+                                    <i class="ri-shopping-bag-line text-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const card = document.createElement("div");
+                card.onclick = () => openProductPage(product.id);
+                if (isSwiper) {
+                    card.className = "swiper-slide product-card rounded-xl overflow-hidden cursor-pointer flex flex-col border border-gray-100 dark:border-gray-800";
+                } else {
+                    card.className = "product-card rounded-xl overflow-hidden relative cursor-pointer flex flex-col border border-gray-100 dark:border-gray-800";
+                }
+                card.innerHTML = cardHtml;
+                grid.appendChild(card);
+            });
+        }
+
+        function openProductPage(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-product').classList.remove('hidden');
+            window.scrollTo(0,0);
+
+            // Populate Info
+            document.getElementById('pd-category').innerText = product.category;
+            document.getElementById('pd-title-short').innerText = product.name;
+            document.getElementById('pd-title').innerText = product.name;
+            document.getElementById('pd-rating').innerText = product.rating;
+            document.getElementById('pd-reviews').innerText = `${product.reviews} sharh`;
+            document.getElementById('pd-price').innerText = `${formatPrice(product.price)} so'm`;
+            document.getElementById('pd-old-price').innerText = product.oldPrice ? `${formatPrice(product.oldPrice)} so'm` : '';
+            document.getElementById('pd-installment').innerText = `${calcInst(product.price)} so'm/oy`;
+            document.getElementById('pd-desc').innerText = product.desc;
+            document.getElementById('pd-brand').innerText = product.brand;
+            document.getElementById('pd-main-img').src = product.img;
+
+            // Gallery Thumbs
+            const thumbsContainer = document.getElementById('pd-thumbs');
+            thumbsContainer.innerHTML = '';
+            product.images.forEach(imgSrc => {
+                const img = document.createElement('img');
+                img.src = imgSrc;
+                img.className = "w-16 h-20 object-cover rounded-lg cursor-pointer border-2 border-transparent hover:border-uzum transition opacity-70 hover:opacity-100";
+                img.onclick = () => { document.getElementById('pd-main-img').src = imgSrc; };
+                thumbsContainer.appendChild(img);
+            });
+
+            // Buttons setup
+            const addBtn = document.getElementById('pd-add-btn');
+            addBtn.onclick = () => { addCart(new Event('click'), product.id); };
+            
+            const favBtn = document.getElementById('pd-fav-btn');
+            const isFav = favorites.includes(product.id);
+            favBtn.innerHTML = `<i class="${isFav ? 'ri-heart-fill text-uzum' : 'ri-heart-line'}"></i>`;
+            favBtn.onclick = () => {
+                toggleFav(new Event('click'), product.id);
+                favBtn.innerHTML = `<i class="${favorites.includes(product.id) ? 'ri-heart-fill text-uzum' : 'ri-heart-line'}"></i>`;
+            };
+
+            // Render Similar
+            renderProducts(products.filter(p => p.category === product.category && p.id !== product.id).slice(0,8), 'similar-products', true);
+            
+            // Re-init similar swiper if exists
+            if (window.similarSwiper) window.similarSwiper.destroy();
+            window.similarSwiper = new Swiper('.similar-swiper', {
+                slidesPerView: 2, spaceBetween: 10,
+                navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+                breakpoints: { 640: { slidesPerView: 3 }, 768: { slidesPerView: 4 }, 1024: { slidesPerView: 5 } }
+            });
+        }
+
+        function addCart(e, id) {
+            if(e) e.stopPropagation();
+            const existing = cart.find(i => i.id === id);
+            if (existing) existing.quantity += 1;
+            else cart.push({ ...products.find(p => p.id === id), quantity: 1 });
+            saveLocal(); updateBadges(); showToast("Savatchaga qo'shildi");
+        }
+
+        function toggleFav(e, id) {
+            if(e) e.stopPropagation();
+            const idx = favorites.indexOf(id);
+            if (idx > -1) favorites.splice(idx, 1);
+            else favorites.push(id);
+            saveLocal(); updateBadges();
+            
+            // UI Update depending on view
+            if (viewState === 'favorites') showFavorites();
+            else if (viewState === 'home') renderProducts(products); // Refreshes heart icons
+        }
+
+        function updateBadges() {
+            const cTotal = cart.reduce((s, i) => s + i.quantity, 0);
+            ['cart-count-desktop', 'cart-count-mobile'].forEach(id => {
+                const el = document.getElementById(id);
+                el.innerText = cTotal; el.classList.toggle('hidden', cTotal === 0);
+            });
+            const fTotal = favorites.length;
+            ['fav-count-desktop', 'fav-count-mobile'].forEach(id => {
+                const el = document.getElementById(id);
+                el.innerText = fTotal; el.classList.toggle('hidden', fTotal === 0);
+            });
+        }
+
+        // Search logic
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const suggBox = document.getElementById('search-suggestions');
+            if (query.length < 2) { suggBox.innerHTML = ''; return; }
+            
+            const results = products.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query)).slice(0, 5);
+            if (results.length === 0) {
+                suggBox.innerHTML = '<div class="p-4 text-sm text-gray-500">Hech narsa topilmadi</div>';
+                return;
+            }
+
+            suggBox.innerHTML = results.map(p => `
+                <div onclick="openProductPage(${p.id}); document.getElementById('search-container').classList.remove('search-active');" 
+                     class="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b dark:border-gray-800 last:border-0">
+                    <img src="${p.img}" class="w-10 h-10 object-cover rounded">
+                    <div class="flex-1 overflow-hidden"><div class="text-sm font-medium truncate dark:text-white">${p.name}</div><div class="text-xs text-gray-400">${formatPrice(p.price)} so'm</div></div>
+                </div>
+            `).join('');
+        }
+
+        // Sorting
+        function sortProducts() {
+            const type = document.getElementById('sort-select').value;
+            let list = viewState === 'favorites' ? products.filter(p=>favorites.includes(p.id)) : [...products];
+            
+            if (type === 'cheap') list.sort((a,b) => a.price - b.price);
+            else if (type === 'expensive') list.sort((a,b) => b.price - a.price);
+            else if (type === 'rating') list.sort((a,b) => b.rating - a.rating);
+            
+            renderProducts(list);
+        }
+
+        // Cart UI
+        function openCart() {
+            renderCart();
+            document.getElementById('cart-overlay').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('cart-overlay').classList.remove('opacity-0');
+                document.getElementById('cart-modal').classList.remove('translate-x-full');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCart() {
+            document.getElementById('cart-overlay').classList.add('opacity-0');
+            document.getElementById('cart-modal').classList.add('translate-x-full');
+            setTimeout(() => { document.getElementById('cart-overlay').classList.add('hidden'); }, 300);
+            document.body.style.overflow = '';
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items');
+            container.innerHTML = '';
+            
+            if (cart.length === 0) {
+                document.getElementById('cart-empty').classList.remove('hidden');
+                document.getElementById('cart-footer').classList.add('hidden');
+                return;
+            }
+            
+            document.getElementById('cart-empty').classList.add('hidden');
+            document.getElementById('cart-footer').classList.remove('hidden');
+            
+            let total = 0;
+            cart.forEach(item => {
+                total += item.price * item.quantity;
+                container.innerHTML += `
+                    <div class="flex gap-4 bg-white dark:bg-darkCard p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+                        <img src="${item.img}" class="w-20 h-24 object-cover rounded-md">
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <h4 class="text-sm line-clamp-2 pr-2 dark:text-white">${item.name}</h4>
+                                <button onclick="changeQty(${item.id}, -${item.quantity})" class="text-gray-400 hover:text-red-500"><i class="ri-delete-bin-line"></i></button>
+                            </div>
+                            <div class="flex justify-between items-end mt-2">
+                                <div class="font-bold text-sm dark:text-white">${formatPrice(item.price)}</div>
+                                <div class="flex items-center gap-2 border dark:border-gray-700 rounded-md px-2 py-1 bg-gray-50 dark:bg-gray-800">
+                                    <button onclick="changeQty(${item.id}, -1)" class="text-gray-500 w-4">-</button>
+                                    <span class="text-sm w-4 text-center dark:text-white">${item.quantity}</span>
+                                    <button onclick="changeQty(${item.id}, 1)" class="text-gray-500 w-4">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('cart-total').innerText = `${formatPrice(total)} so'm`;
+        }
+
+        function changeQty(id, d) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.quantity += d;
+                if (item.quantity <= 0) cart = cart.filter(i => i.id !== id);
+                saveLocal(); updateBadges(); renderCart();
+            }
+        }
+
+        function checkout() { closeCart(); cart = []; saveLocal(); updateBadges(); showToast("Buyurtma rasmiylashtirildi!", 3000); }
+
+        function showToast(msg, d = 2000) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('pointer-events-none'); t.classList.add('toast-show');
+            setTimeout(() => { t.classList.remove('toast-show'); t.classList.add('pointer-events-none'); }, d);
+        }
+
+        // Dark Mode Logic
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-icon').className = isDark ? 'ri-sun-line text-yellow-400' : 'ri-moon-line';
+            document.getElementById('theme-text').innerText = isDark ? 'Kunduzgi rejim' : 'Tungi rejim';
+        }
+
+        // Scroll Logic for Back to Top
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('back-to-top');
+            if (window.scrollY > 500) { btn.classList.remove('opacity-0', 'pointer-events-none'); } 
+            else { btn.classList.add('opacity-0', 'pointer-events-none'); }
+        });
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply saved theme
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                toggleDarkMode();
+            }
+
+            // Render categories swiper content
+            const catContainer = document.querySelector('.category-swiper .swiper-wrapper');
+            categories.forEach(c => {
+                catContainer.innerHTML += `
+                    <div class="swiper-slide cursor-pointer group">
+                        <div class="w-16 h-16 mx-auto bg-white dark:bg-darkCard rounded-2xl flex items-center justify-center text-3xl shadow-sm border border-gray-100 dark:border-gray-800 group-hover:border-uzum group-hover:text-uzum transition mb-2">${c.icon}</div>
+                        <span class="text-xs font-medium dark:text-gray-300">${c.name}</span>
+                    </div>`;
+            });
+
+            // Init Main Swipers
+            new Swiper('.hero-swiper', {
+                loop: true, autoplay: { delay: 3000, disableOnInteraction: false },
+                pagination: { el: '.swiper-pagination', clickable: true },
+                navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' }
+            });
+            
+            new Swiper('.category-swiper', {
+                slidesPerView: 4, spaceBetween: 10,
+                breakpoints: { 640: { slidesPerView: 6 }, 768: { slidesPerView: 8 } }
+            });
+
+            // Init Products
+            renderProducts(products);
+            updateBadges();
+
+            // Setup Countdown mock
+            setInterval(() => {
+                const s = document.getElementById('cd-s');
+                let val = parseInt(s.innerText) - 1;
+                if(val < 0) val = 59; // Loop seconds simply for visual effect
+                s.innerText = val.toString().padStart(2, '0');
+            }, 1000);
+
+            // Remove Loader
+            setTimeout(() => {
+                const loader = document.getElementById('page-loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 300);
+            }, 1000); // Fake load time
+        });
+    </script>
+</body>
+</html>
